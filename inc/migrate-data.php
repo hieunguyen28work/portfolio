@@ -214,26 +214,29 @@ foreach ($projects as $proj) {
             'post_type'    => 'project',
             'menu_order'   => $proj['order'],
         ]);
-        if ($post_id && !is_wp_error($post_id)) {
-            update_post_meta($post_id, '_project_type', $proj['type']);
-            update_post_meta($post_id, '_project_sub', $proj['sub']);
+    } else {
+        $post_id = $existing->ID;
+    }
+    
+    if ($post_id && !is_wp_error($post_id)) {
+        update_post_meta($post_id, '_project_type', $proj['type']);
+        update_post_meta($post_id, '_project_sub', $proj['sub']);
+        
+        if (!empty($proj['images'])) {
+            // First image is thumb
+            $thumb_id = ht_import_local_image($proj['images'][0]);
+            if ($thumb_id) {
+                set_post_thumbnail($post_id, $thumb_id);
+            }
             
-            if (!empty($proj['images'])) {
-                // First image is thumb
-                $thumb_id = ht_import_local_image($proj['images'][0]);
-                if ($thumb_id) {
-                    set_post_thumbnail($post_id, $thumb_id);
-                }
-                
-                // All images in gallery
-                $gallery_ids = [];
-                foreach ($proj['images'] as $img) {
-                    $id = ht_import_local_image($img);
-                    if ($id) $gallery_ids[] = $id;
-                }
-                if (!empty($gallery_ids)) {
-                    update_post_meta($post_id, '_project_gallery', implode(',', $gallery_ids));
-                }
+            // All images in gallery
+            $gallery_ids = [];
+            foreach ($proj['images'] as $img) {
+                $id = ht_import_local_image($img);
+                if ($id) $gallery_ids[] = $id;
+            }
+            if (!empty($gallery_ids)) {
+                update_post_meta($post_id, '_project_gallery', implode(',', $gallery_ids));
             }
         }
     }
